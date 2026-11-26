@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SONARE – Controlo de Convidados</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;700&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f2f5f4;--card:#fff;--ink:#12292b;--mute:#5d7274;--line:#d9e2e1;--acc:#1f5d5a;--accbg:#e1efed;--gold:#b8923f;--goldbg:#f6edd8;--ok:#1f7a4d;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1819;--card:#16262a;--ink:#e8f0ef;--mute:#8da5a7;--line:#27393d;--acc:#6cc1bb;--accbg:#1b3a3b;--gold:#d8b565;--goldbg:#33301f;--ok:#5fcf97}}
+:root[data-theme="dark"]{--bg:#0e1819;--card:#16262a;--ink:#e8f0ef;--mute:#8da5a7;--line:#27393d;--acc:#6cc1bb;--accbg:#1b3a3b;--gold:#d8b565;--goldbg:#33301f;--ok:#5fcf97}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 "Instrument Sans",system-ui,sans-serif;min-height:100%}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--card);z-index:10}
+header{background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:env(safe-area-inset-top,0px);z-index:9;padding:14px 16px 12px}
+.wrap{max-width:1100px;margin:0 auto}
+h1{font:700 26px/1 Fraunces,Georgia,serif;margin:0;letter-spacing:.04em}
+.sub{color:var(--mute);font-size:13px;margin-top:3px}
+.top{display:flex;justify-content:space-between;align-items:flex-end;gap:12px}
+.stats{display:flex;gap:18px;margin-top:12px}
+.stat b{font:700 28px/1 Fraunces,Georgia,serif;color:var(--acc)}
+.stat span{display:block;font-size:12px;color:var(--mute);margin-top:2px}
+.bar{height:6px;background:var(--line);border-radius:3px;margin-top:12px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--gold);width:0;transition:width .3s}
+.tools{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+input[type=search],.edit,.add input{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 12px;min-width:0}
+input[type=search]{flex:1 1 180px}
+button{font:inherit;color:var(--ink);background:none;border:1px solid var(--line);border-radius:8px;padding:8px 12px;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
+.chip.on{background:var(--acc);color:var(--card);border-color:var(--acc)}
+main{padding:16px;max-width:1100px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:14px;align-items:start}
+.t{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.t.full{border-color:var(--gold)}
+.th{display:flex;justify-content:space-between;align-items:center;width:100%;border:0;border-radius:0;padding:12px 14px;text-align:left;background:var(--accbg)}
+.th strong{font:700 18px Fraunces,Georgia,serif}
+.th small{display:block;color:var(--mute);font-size:12px;font-weight:400}
+.pill{font-size:13px;font-weight:600;color:var(--acc)}
+.full .pill{color:var(--gold)}
+.t.shut ul,.t.shut .add{display:none}
+ul{list-style:none;margin:0;padding:0}
+li{display:flex;align-items:center;gap:10px;padding:6px 12px;border-top:1px solid var(--line)}
+li.done .nm{color:var(--mute);text-decoration:line-through}
+li.done{background:var(--goldbg)}
+.ck{flex:none;width:34px;height:34px;padding:0;border-radius:50%;font-size:17px;line-height:1;color:transparent}
+li.done .ck{background:var(--ok);border-color:var(--ok);color:#fff}
+.nm{flex:1;min-width:0;padding:8px 0;cursor:text;overflow-wrap:anywhere}
+.nm small{display:block;color:var(--mute);font-size:11px}
+.px{flex:none;font-size:12px;padding:4px 8px;border-radius:12px;color:var(--mute)}
+.edit{flex:1}
+.add{display:flex;gap:6px;padding:8px 12px;border-top:1px solid var(--line)}
+.add input{flex:1}
+.empty{padding:40px;text-align:center;color:var(--mute);grid-column:1/-1}
+.foot{max-width:1100px;margin:0 auto;padding:4px 16px 40px;display:flex;gap:8px;flex-wrap:wrap;color:var(--mute);font-size:13px;align-items:center}
+@media print{header .tools,.add,.ck,.foot button{display:none}header{position:static}.t.shut ul{display:block}}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+<div class="top"><div><h1>SONARE</h1><div class="sub">Controlo de convidados</div><div id="st" class="sub"></div></div>
+<button id="theme" aria-label="Alternar tema">◐</button></div>
+<div class="stats">
+<div class="stat"><b id="sP">0</b><span>pessoas presentes</span></div>
+<div class="stat"><b id="sT">0</b><span>pessoas esperadas</span></div>
+<div class="stat"><b id="sG">0/0</b><span>convites</span></div>
+</div>
+<div class="bar"><i id="pb"></i></div>
+<div class="tools">
+<input type="search" id="q" placeholder="Procurar convidado…" aria-label="Procurar convidado">
+<button class="chip on" data-f="all">Todos</button>
+<button class="chip" data-f="out">Em falta</button>
+<button class="chip" data-f="in">Presentes</button>
+</div></div></header>
+<main id="app"></main>
+<div class="foot">
+<button id="exp">Expandir tudo</button><button id="col">Recolher tudo</button><button id="prt">Imprimir</button>
+<button id="rst">Limpar presenças</button>
+<span>Toque no nome para editar · toque em “2 pess.” para alterar o número de pessoas.</span>
+</div>
+<script>
+
+// Incremente RAW_VER sempre que alterar nomes ou mesas no RAW para forçar a atualização
+const RAW_VER = 2;
+const RAW = [
+  ["Mesa 1 - Obrigado", "Paulo Fumane|Esposa|Hosseia Nhabique|Esposa|Jeremias Mavale|Esposa|Fernando Dias|Esposa|Castro Azarias|Esposa"],
+  ["Mesa 2 - Ndza Khensa", "S.Excia Adriano Maleiane|Esposa|S.Excia Carla Loveira|Esposo|S.Excia Salimo Valá|Esposa|Diogo Nhaquila|Esposa|João Pedro Rodrigues|Filipe Lúcio"],
+  ["Mesa 3 - Khanimambo", "General Basilio Monteiro|Esposa|Dr. Octávio Mutemba|Esposa|Dr. Taibo Mucobora|Esposa|Dr. Aiuba Cuereneia|Esposa|Inocêncio Sotomane|Esposa"],
+  ["Mesa 4 - Thank You", "S.Excia Ernesto Max Tonela|Esposa|Dr. Nelson Muianga|Esposa|Ester Santos|Esposo|Danilo Nalá|Esposa|Dr. Pedro Cossa|Esposa"],
+  ["Mesa 5 - Grazie", "Carlos Fruquia|Clara Mahomed Fruquia|Humberto Fumane|Ana Fumane|Ana Taero Salaude|Felix Victor André|Carlos de Oliveira|Esposa|Maria Rafaela Hermenegildo|Adozinda Hermenegildo|Isaías Hermenegildo|Esposa|Ana Hermenegildo|Francisco Maria Miguel|Lourenço Novela|Esposa"],
+  ["Mesa 6 - Nangua", "Isaltina Lucas|Marisa Alves|Martinho Djedje|Esposa|Miguel Simbine|Esposa|Roque Sebastião|Esposa|Marcelino Botão|Esposa|Benedito Murambire|Esposa|Arlindo Manjate|Esposa|Alcino Michaque|Esposa"],
+  ["Mesa 7 - Ngiyabonga", "José Djate|Esposa|Simon Como|Esposa|Salustiano José|Esposa|Susana Mapilele|Esposo|Rosário Matavele|Esposa|Anselmo Zimba|Esposa"],
+  ["Mesa 8 - Grazzi", "Eusebio Saide|Esposa|Ema Donça|Esposo|Miguel Coanai|Esposa|Francisco Inaque|Esposa|Celso Filimão|Esposa|Constantino Nhampule|Esposa"],
+  ["Mesa 9 - Shukran", "André Nhabique|Esposa|Pedro Comé|Esposa|Eduardo Chimela|Esposa|Ranito Alexandre|Esposa|Fabião Nhabique|Esposa|Paulo Chimela|Esposa"],
+  ["Mesa 10 - Gràcies", "Fábio Darsan|Esposa|Valter Siba Siba|Esposa|Mauro Manjate|Esposa|Yanick Paulo Jorge da Costa Bagasse|Samuel Júnior|Esposa|Patrick Mogne|Noiva|Rafael Fumane"],
+  ["Mesa 11 - Gracias", "Celso Mutemba|Filiano Mutemba|Esposa|Domingos Diogo|Esposa|Padre Abel Sicanso|Belarmino Chivambo|Esposa|Momade Nemane|Esposa|Armando Inroga|Esposa"],
+  ["Mesa 12 - Enkosi", "Patrocinio Mascarenhas|Stélio Mascarenhas|Esposa|Paulo Jorge da Costa Bagasse|Esposa|Albertina Bambaige Matimbe|Esposo|Zélia Cristina|Nuno Fonseca|Esposa|Jane Goveia|Natalina Calisto"],
+  ["Mesa 13 - Ndzi Nkhensile", "Alfredo Paua|Esposa|Sérgio Paua|Esposa|José Rafael|Esposa|Adelino Cherindza|Esposa|Glória Janeiro|Esposo|Domingos Lambo|Esposa|Egas Simbine|Esposa|Manuel Cabinda|Esposa"],
+  ["Mesa 14 - Hvala", "Paulo Cuinica Jr|Esposa|Ivander Macia|Esposa|Júnior Jay Argh|Esposa|Malik Carilho|Esposa|Larsen Muchanga|Esposa|Lorivaldo Simango|Dayne Michel|Esposa|Rodrigo Ramalho|Esposa|Higino Cuamba"],
+  ["Mesa 15 - Ndzi bonguile", "Joana Oliveira|Helena da Graça|Ana Luísa Cheveia|Bernardo de Carvalho|Esposa|Rogério António Martinho|Zein Oliveira|Halley Ibraimo|Alice Mavale|Glória Tivane|Mendes Salvador|Rosangela Carlos"],
+  ["Mesa 16 - Salamat", "Uli da Silva|Armando Correia|Esposa|Ivaldo Banze|Mimiy Mondlane|Kevin Zualo|Esposa|Chelsea Kapece|Karen Massango|Esposo|Edilson Bachita|Esposa"],
+  ["Mesa 17 - Tashikeni", "Maria Mavale|Renato Timane|Nuno Manjate|Esposa|Ilda Luisa|Esposo|João Dias|Esposa|Sandra Bontana|Luisa Baccarat|Edma dos Santos|Rosária Chambule"],
+  ["Mesa 18 - Paldies", "Natasha Macuacua|Esposo|Vânia de Oliveira|Noivo|Maria Sara Manjate|Cintia David|Jéssica Cuinica|Belnisio Cossa|Esposa|Joaquina Massingarela|Alice Comé|Amelia Meque"],
+  ["Mesa 19 - Ndatenda", "Dino Nhabique|Esposa|Arnaldo Magalhães|Esposa|Armando Nguenha|Esposa|Carlos Cuereneia|Esposa|Timoteo Faizal|Aiuba Cuereneia Junior|Virgílio Maria|Esposa"],
+  ["Mesa 20 - Rahmat", "Paula Bila|Nayara Gulamo|Sheila Nhampossa|Vanessa Neves|Mayett Manganhela|Esposo|Carlos Guambe|Esposa|Edna Bebana|Esposo|Sandra Chauque|Yolanda Muianga"],
+  ["Mesa 21 - Dankie", "Suzete Constaça|Cátia Constança|Paula Rodrigues|Sonia Miranda|Helena Soares Amade|Alice Soares|Savia Ferreira|Fredson Rafael|Esposa|Sonia Manhiça|Esposo|Maria Isabel Omar"],
+  ["Mesa 22 - Aguyie", "Natley Murambire|Namorado|Yannick Botão|Namorada|Yunara Botão|Namorado|Kelly|Hamid Ibraimo|Elvis|Marvin Oliveira|José Chavane|Esposa"],
+  ["Mesa 23 - Xiéxié", "João Tesinde|Esposa|Erasmo Langa|Esposa|Milca Tesinde|Esposo|Ester Tesinde|Esposo|Natalia Zandamela|Sandra Lameira|Esposo|Carlos Zandamela Júnior|Noiva|Carina Zandamela|Alberto Sithole|Esposa"],
+  ["Mesa 24 - Barka", "Cesaria Hou|Noivo|Victória Hou|Danilo Manjate|Esposa|José Macave|Lúcia Manhique|Alfredo Manhique|Elsa Sitoe|Caldina Pacule|Florentina Venguele|Josina Bonzo|Helena Bonzo|Violeta Tembe|Vitor Maluleque|Marina Manhique"],
+  ["Mesa 25 - Merci", "Nixon Nhabique|Azarias Inguane|Lola Inguane|Lomeu Guilhiche|Filipe Sousa|Ian Blanco|Esposa|Elfrasio Mugabe|Esposa|Marlon Cumbi|Cláudio Munjovo|Esposa|Lester Gonçalves|Elton James|Esposa|Barnabé Zandamela"],
+  ["Mesa 26 - Medasse", "Iuri Fumane|Igor Neves|Pedro Palate|Esposa|Hugo Ferreira|Aecio Mavale|Rui Simango|Kemylain Fumane|Ellaine Fumane|Ivan Nhabique|Leo Zitha|Esposa|Joaquim Macumbi|Esposa|Wimy Huo|Kelvin Fumane"],
+  ["Mesa 27 - Danke", "Leonilde Fruquia|Edwin Fruquia|Júlia Amélia|Clara Muchanga|Ernesto Nhambe|Esposa|Rui Simango|Esposa|Ercilio Fulane|Esposa|Zeca Tesinde|Esposa|Ilidio Xerinda|Esposa|Rassina Castro Salaude|Berta Castro Salaude"],
+  ["Mesa 28 - Tack", "Edvan Murambire|Esposa|Domingos João Júnior|Esposa|Elton Nobre|Esposa|Gibel Cassiano|Namorada|Erico Veríssimo|Idelson Revo Revo|Victório Huo|Esposa"],
+  ["Mesa 29 - Arigato", "Carlos Fruquia Jr.|Carlos Muchanga|Cesar dos Santos|Esposa|Enidy Felix|Stélio Félix|Esposa|Marcelino Djedje|Esposa|Vicente Amone|Pinho Prometido|Esposa"],
+  ["Mesa 30 - Mahalo", "Maria Teresa Gandar|Esposo|Costa Ferreira|Esposa|Sérgio Magumo|Teresa Salda|Hermenegildo Lucas|Esposa|Ana Nhabique|Anagica Viola|Odete Hamela|Esposo"],
+  ["Mesa 31 - Takhuta", "Padre Bernardino Matavele|Padre Rodrigues Chizenga|Padre Dionísio Machel|Padre Eugénio Sigauque|Padre Teodoro Adriano|Padre Horácio Simbine|Padre Carlos da Cunha|Isabel Mulhuiu|Maria Namo|Maria Conceição Monteiro|Jorge Massinga|Esposa"],
+  ["Mesa 32 - Takk", "Shakila de Oliveira|Noivo|Kevin Alex Nhampule|Esposa|Nelly Psico|Luana Maria|Samson Nkomo|Bruno Dava|Namorada|Gabriela Dava|Esposo|Delphi Cuambe|Daren Laice|Esposa|Lilian Guibalo|Melissa Guibalo"],
+  ["Mesa 33 - Zikomo", "Raimundo Tamele Jr.|Esposa|Helton Tamele|Esposa|Benigno Papelo|Esposa|Beato Realdo Dias|Esposa|Danny Candua|Bonifacio Lazaro Massamba|Esposa|Gamaliel Massinga|Esposa|Sérgio Mauai|Esposa|Jeremias Mondlane"],
+  ["Mesa 34 - Diolch", "Márcio Pereira|Esposa|Adilson Sumburane|Labvu Rego|Noiva|Deucio Sitoe|Esposa|Edson Cardoso|Esposa|Neidy Langa|Esposo|Diamantino Langa"],
+  ["Mesa 35 - Maita", "Teofilo Lacuna|Esposa|Tilde Tembe|Esposa|Hilidio Mundomba|Esposa|Gualter Gonçalves|Esposa|Lívio Mahanhe|Esposa|Jorge da Silva|Esposa"],
+  ["Mesa 36 - Daalu", "Dinoky Maringue|Esposa|Charmilia Machibene|Esposo|Edy Mahumane|Érica Chaisse|Esposo|Luna Sérgio|Luana Sérgio|Rossana Isaias|Rady Gramane|Castro Inguane Jr"],
+  ["Mesa 37 - Nashukuru", "Amilcar Mavale|Esposa|Ismael Sulemane|Esposa|Paulo Mata|Esposa|Zefanias Emerico|Esposa|Jo Capece|Esposa|Xu George 1|Xu George 2|Carol Hamela|Esposo|Alice Hamela|Esposa"],
+  ["Mesa 38 - Ndapandula", "Joaquim Langa|Esposa|Julião Langa|Esposa|Celina Ubisse|Teodomiro Pedro|Esposa|Ercilia Ubisse|Domingos Buque|Esposa|Virgilio Sithole|Esposa|Yuran Mendes|Michelle Ana|Ronaldo Miambo|Hosseia Hermenegildo"]
+];
+const KEY = "sonare-convidados-v3";
+const VER_KEY = "sonare-raw-ver";
+const pax = n => /Família/.test(n) ? 4 : / (e|&) /.test(n) ? 2 : 1;
+
+let uid = 0;
+const fresh = () => {
+  uid = 0;
+  return RAW.map(([name, s], i) => ({
+    id: i,
+    name,
+    open: true,
+    g: s.split("|").map(n => ({ id: "g" + (++uid), n, p: pax(n), c: 0, t: "", o: uid }))
+  }));
+};
+
+function mergeWithRaw(prevTables) {
+  const next = fresh();
+  const prevMap = new Map();
+  const prevOpen = new Map();
+
+  if (Array.isArray(prevTables)) {
+    prevTables.forEach(t => {
+      prevOpen.set(t.id, !!t.open);
+      (t.g || []).forEach(g => {
+        prevMap.set(`${t.id}:${g.id}`, g);
+      });
+    });
+  }
+
+  return next.map(t => {
+    if (prevOpen.has(t.id)) t.open = prevOpen.get(t.id);
+    t.g = t.g.map(g => {
+      const old = prevMap.get(`${t.id}:${g.id}`);
+      if (!old) return g;
+      return {
+        ...g,
+        c: old.c ? 1 : 0,
+        t: old.t || "",
+        p: old.p && old.p !== pax(old.n) ? old.p : pax(g.n)
+      };
+    });
+    return t;
+  });
+}
+
+let S;
+try {
+  const v = localStorage.getItem(KEY);
+  S = v ? JSON.parse(v) : null;
+} catch (e) { S = null; }
+if (!S || !Array.isArray(S.t)) { S = { t: fresh() }; }
+
+let savedVer = 0;
+try { savedVer = Number(localStorage.getItem(VER_KEY) || 0); } catch (e) {}
+const rawChanged = savedVer !== RAW_VER;
+if (rawChanged) {
+  S = { t: mergeWithRaw(S.t) };
+  try { localStorage.setItem(VER_KEY, String(RAW_VER)); } catch (e) {}
+}
+
+let mode = "wait", DB = null, canW = true, live = false, pending = 0, seeding = 0, forceRawFromDb = rawChanged;
+
+function saveLocal() {
+  try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
+}
+
+const ok = () => canW && (mode === "live" || mode === "local");
+const ST = {
+  wait: ["A ligar…", "var(--mute)"],
+  live: ["● Ao vivo: sincronizado em todos os dispositivos", "var(--ok)"],
+  local: ["Modo local: só neste dispositivo", "var(--gold)"],
+  ro: ["Só leitura: peça acesso de Contribuidor", "var(--gold)"],
+  empty: ["A aguardar que o organizador abra a página pela primeira vez", "var(--mute)"]
+};
+function setSt() {
+  const [a, c] = ST[mode], e = $("st");
+  e.textContent = a;
+  e.style.color = c;
+}
+
+function push(t, g, del) {
+  saveLocal();
+  if (!DB || !live) return;
+  const r = DB.collection("guests").doc(g.id);
+  (del ? r.delete() : r.set({ t: t.id, n: g.n, p: g.p, c: g.c, ts: g.t, o: g.o || 0 }))
+    .catch(() => {
+      $("st").textContent = "Erro ao sincronizar: tente de novo";
+      $("st").style.color = "var(--gold)";
+    });
+}
+
+async function syncRawToDb() {
+  if (!DB || !canW) return;
+  for (const t of S.t) {
+    for (const g of t.g) {
+      try {
+        await DB.collection("guests").doc(g.id).set(
+          { t: t.id, n: g.n, p: g.p, c: g.c, ts: g.t, o: g.o || 0 },
+          { merge: true }
+        );
+      } catch (e) {}
+    }
+  }
+}
+
+function rebuild(docs) {
+  const openMap = new Map(S.t.map(t => [t.id, t.open]));
+  const rawIndex = new Map();
+  if (forceRawFromDb) {
+    S.t.forEach(t => (t.g || []).forEach(g => rawIndex.set(g.id, g)));
+  }
+  const by = fresh().map(t => ({ id: t.id, name: t.name, open: openMap.has(t.id) ? openMap.get(t.id) : true, g: [] }));
+  docs.forEach(d => {
+    const v = d.data();
+    if (v && by[v.t]) {
+      const rawItem = forceRawFromDb ? rawIndex.get(d.id) : null;
+      by[v.t].g.push({
+        id: d.id,
+        n: rawItem ? rawItem.n : String(v.n),
+        p: rawItem ? rawItem.p : (+v.p || 1),
+        c: v.c ? 1 : 0,
+        t: v.ts || "",
+        o: rawItem ? rawItem.o : (+v.o || 0)
+      });
+    }
+  });
+  by.forEach(t => t.g.sort((a, b) => a.o - b.o));
+  S = { t: by };
+  saveLocal();
+}
+
+const busy = () => editing || (document.activeElement && document.activeElement.dataset && document.activeElement.dataset.a === "addin");
+
+async function seed() {
+  seeding = 1;
+  const all = fresh();
+  let n = 0;
+  for (const t of all) {
+    for (const g of t.g) {
+      for (let k = 0; k < 6; k++) {
+        try {
+          await DB.collection("guests").doc(g.id).set({ t: t.id, n: g.n, p: g.p, c: 0, ts: "", o: g.o });
+          break;
+        } catch (e) {
+          await new Promise(r => setTimeout(r, 700 * (k + 1)));
+        }
+      }
+      n++;
+      $("st").textContent = "A preparar a lista partilhada… " + n + "/" + uid;
+    }
+  }
+}
+
+async function init() {
+  setSt();
+  let db = null, user = null;
+  try {
+    db = await claude.use("db");
+    user = await claude.use("user");
+  } catch (e) {}
+  if (!db) {
+    mode = "local";
+    setSt();
+    saveLocal();
+    return;
+  }
+  DB = db;
+  try { if (user && (await user.can("data.write")) === false) canW = false; } catch (e) {}
+  let owner = false;
+  try { owner = user ? await user.isOwner() : false; } catch (e) {}
+
+  const tm = setTimeout(() => { if (mode === "wait") { mode = "local"; setSt(); } }, 10000);
+
+  let didRawSync = false;
+  db.collection("guests").limit(1000).onSnapshot(async snap => {
+    clearTimeout(tm);
+    if (!snap.docs.length) {
+      if (owner && !seeding) await seed();
+      else if (!owner && !live) { mode = "empty"; setSt(); }
+      return;
+    }
+    live = true;
+    mode = canW ? "live" : "ro";
+
+    if (rawChanged && !didRawSync && canW) {
+      didRawSync = true;
+      await syncRawToDb();
+      forceRawFromDb = false;
+    }
+
+    rebuild(snap.docs);
+    setSt();
+    if (busy()) pending = 1;
+    else render();
+  }, () => { if (!live) { mode = "local"; setSt(); } });
+}
+
+let F = "all", Q = "", editing = null;
+const esc = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const norm = s => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+const $ = id => document.getElementById(id);
+
+function render() {
+  let gi = 0, gc = 0, pp = 0, pt = 0, html = "";
+  for (const t of S.t) {
+    const all = t.g;
+    gi += all.length;
+    const tp = all.reduce((a, g) => a + g.p, 0), pr = all.filter(g => g.c);
+    const cp = pr.reduce((a, g) => a + g.p, 0);
+    gc += pr.length;
+    pp += cp;
+    pt += tp;
+    const vis = all.filter(g => (F === "all" || (F === "in") === !!g.c) && (!Q || norm(g.n).includes(Q)));
+    if ((Q || F !== "all") && !vis.length) continue;
+    const open = t.open || Q || F !== "all";
+    const full = all.length && pr.length === all.length;
+    html += `<section class="t${full ? " full" : ""}${open ? "" : " shut"}" data-t="${t.id}">
+<button class="th" data-a="tog"><span><strong>${esc(t.name)}</strong><small>${all.length} convites · ${tp} pessoas</small></span><span class="pill">${full ? "Completa · " : ""}${cp}/${tp}</span></button><ul>`;
+    for (const g of vis) {
+      html += `<li class="${g.c ? "done" : ""}" data-g="${g.id}"><button class="ck" data-a="ck" aria-label="Marcar presença de ${esc(g.n)}">✓</button>` +
+        (editing === g.id
+          ? `<input class="edit" value="${esc(g.n)}" data-a="ed"><button data-a="del" aria-label="Apagar">🗑</button>`
+          : `<span class="nm" data-a="nm">${esc(g.n)}${g.c && g.t ? `<small>chegou às ${g.t}</small>` : ""}</span><button class="px" data-a="px" aria-label="Alterar número de pessoas">${g.p} pess.</button>`) +
+        `</li>`;
+    }
+    html += `</ul><div class="add"><input placeholder="Adicionar convidado…" data-a="addin"><button data-a="add">+</button></div></section>`;
+  }
+  $("app").innerHTML = html || '<div class="empty">Nenhum convidado encontrado.</div>';
+  $("sP").textContent = pp;
+  $("sT").textContent = pt;
+  $("sG").textContent = gc + "/" + gi;
+  $("pb").style.width = (pt ? pp / pt * 100 : 0) + "%";
+  if (editing) { const e = document.querySelector(".edit"); if (e) { e.focus(); e.select(); } }
+}
+
+const find = el => {
+  const li = el.closest("li"), s = el.closest(".t");
+  const t = S.t.find(x => x.id == s.dataset.t);
+  return { t, g: li ? t.g.find(x => x.id == li.dataset.g) : null, s };
+};
+
+$("app").addEventListener("click", e => {
+  const b = e.target.closest("[data-a]");
+  if (!b) return;
+  const a = b.dataset.a, { t, g, s } = find(b);
+  if (a === "tog") { if (!(Q || F !== "all")) t.open = !t.open; }
+  else if (a !== "tog" && !ok()) return;
+  else if (a === "ck") { g.c = g.c ? 0 : 1; g.t = g.c ? new Date().toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" }) : ""; push(t, g); }
+  else if (a === "px") { g.p = g.p >= 6 ? 1 : g.p + 1; push(t, g); }
+  else if (a === "nm") { editing = g.id; }
+  else if (a === "del") { t.g = t.g.filter(x => x !== g); editing = null; push(t, g, 1); }
+  else if (a === "add") {
+    const i = s.querySelector(".add input"), v = i.value.trim();
+    if (!v) return;
+    const ng = { id: "n" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), n: v, p: pax(v), c: 0, t: "", o: Date.now() };
+    t.g.push(ng);
+    push(t, ng);
+  } else return;
+  saveLocal();
+  render();
+});
+
+$("app").addEventListener("keydown", e => {
+  const a = e.target.dataset.a;
+  if (a === "ed" && (e.key === "Enter" || e.key === "Escape")) {
+    if (e.key === "Enter") { const { t, g } = find(e.target); const v = e.target.value.trim(); if (v && ok()) { g.n = v; g.p = pax(v); push(t, g); } }
+    editing = null;
+    saveLocal();
+    render();
+  }
+  if (a === "addin" && e.key === "Enter") e.target.nextElementSibling.click();
+});
+
+$("app").addEventListener("focusout", e => {
+  if (e.target.dataset.a === "ed" && editing) {
+    const { t, g } = find(e.target);
+    const v = e.target.value.trim();
+    if (v && v !== g.n && ok()) { g.n = v; g.p = pax(v); push(t, g); }
+    editing = null;
+    setTimeout(render, 120);
+  }
+  if (e.target.dataset.a === "addin" && pending) { pending = 0; setTimeout(render, 150); }
+});
+
+$("q").addEventListener("input", e => { Q = norm(e.target.value.trim()); render(); });
+document.querySelectorAll(".chip").forEach(c => c.addEventListener("click", () => {
+  F = c.dataset.f;
+  document.querySelectorAll(".chip").forEach(x => x.classList.toggle("on", x === c));
+  render();
+}));
+
+$("exp").onclick = () => { S.t.forEach(t => t.open = true); saveLocal(); render(); };
+$("col").onclick = () => { S.t.forEach(t => t.open = false); saveLocal(); render(); };
+$("prt").onclick = () => { try { window.print(); } catch (e) {} };
+
+let armed = 0;
+$("rst").onclick = function () {
+  if (!ok()) return;
+  if (!armed) {
+    armed = 1;
+    this.textContent = "Toque de novo para confirmar";
+    setTimeout(() => { armed = 0; this.textContent = "Limpar presenças"; }, 3500);
+    return;
+  }
+  S.t.forEach(t => t.g.forEach(g => { if (g.c) { g.c = 0; g.t = ""; push(t, g); } }));
+  armed = 0;
+  this.textContent = "Limpar presenças";
+  saveLocal();
+  render();
+};
+
+$("theme").onclick = () => {
+  const r = document.documentElement, d = matchMedia("(prefers-color-scheme:dark)").matches;
+  const cur = r.dataset.theme || (d ? "dark" : "light");
+  r.dataset.theme = cur === "dark" ? "light" : "dark";
+};
+
+render();
+init();
+</script>
+</body>
+</html>
