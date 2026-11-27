@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt">
 <head>
@@ -54,8 +55,6 @@ li.done .ck{background:var(--ok);border-color:var(--ok);color:#fff}
 .add input{flex:1}
 .empty{padding:40px;text-align:center;color:var(--mute);grid-column:1/-1}
 .foot{max-width:1100px;margin:0 auto;padding:4px 16px 40px;display:flex;gap:8px;flex-wrap:wrap;color:var(--mute);font-size:13px;align-items:center}
-
-/* Tela de bloqueio */
 .lock-screen{position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px}
 .lock-screen.hidden{display:none}
 .lock-card{width:100%;max-width:360px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:24px;box-shadow:0 12px 32px rgba(0,0,0,.08)}
@@ -64,11 +63,11 @@ li.done .ck{background:var(--ok);border-color:var(--ok);color:#fff}
 .lock-form{display:flex;flex-direction:column;gap:10px;margin-top:18px}
 .lock-btn{background:var(--acc);color:var(--card);border-color:var(--acc);font-weight:600;padding:10px 14px}
 .lock-err{color:var(--err);font-size:13px;min-height:18px;margin:0}
-
 @media print{header .tools,.add,.ck,.foot button,.lock-screen{display:none}header{position:static}.t.shut ul{display:block}}
 </style>
 </head>
 <body class="locked">
+
 <div class="lock-screen" id="lockScreen" role="dialog" aria-modal="true" aria-labelledby="lockTitle">
   <div class="lock-card">
     <div class="lock-head">
@@ -102,12 +101,15 @@ li.done .ck{background:var(--ok);border-color:var(--ok);color:#fff}
 <button class="chip" data-f="out">Em falta</button>
 <button class="chip" data-f="in">Presentes</button>
 </div></div></header>
+
 <main id="app"></main>
+
 <div class="foot">
 <button id="exp">Expandir tudo</button><button id="col">Recolher tudo</button><button id="prt">Imprimir</button>
 <button id="rst">Limpar presenças</button><button id="lck">Bloquear ecrã</button>
 <span>Toque no nome para editar · toque em “2 pess.” para alterar o número de pessoas.</span>
 </div>
+
 <script>
 const PASS = "ACJ2026";
 const AUTH_KEY = "sonare-unlocked-v1";
@@ -158,27 +160,48 @@ let alreadyUnlocked = false;
 try { alreadyUnlocked = sessionStorage.getItem(AUTH_KEY) === "1"; } catch (e) {}
 setLocked(!alreadyUnlocked);
 
-// Incremente RAW_VER sempre que alterar nomes ou mesas no RAW para forçar a atualização
-const RAW_VER = 2;
+const RAW_VER = 3;
 const RAW = [
-  ["Mesa 1 - Obrigado", "Paulo Fumane|Esposa|Hosseia Nhabique|Esposa|Jeremias Mavale|Esposa|Fernando Dias|Esposa|Castro Azarias|Esposa"],
-  ["Mesa 2 - Ndza Khensa", "S.Excia Adriano Maleiane|Esposa|S.Excia Carla Loveira|Esposo|S.Excia Salimo Valá|Esposa|Diogo Nhaquila|Esposa|João Pedro Rodrigues|Filipe Lúcio"],
-  ["Mesa 3 - Khanimambo", "General Basilio Monteiro|Esposa|Dr. Octávio Mutemba|Esposa|Dr. Taibo Mucobora|Esposa|Dr. Aiuba Cuereneia|Esposa|Inocêncio Sotomane|Esposa"],
-  ["Mesa 4 - Thank You", "S.Excia Ernesto Max Tonela|Esposa|Dr. Nelson Muianga|Esposa|Ester Santos|Esposo|Danilo Nalá|Esposa|Dr. Pedro Cossa|Esposa"],
-  ["Mesa 5 - Grazie", "Carlos Fruquia|Clara Mahomed Fruquia|Humberto Fumane|Ana Fumane|Ana Taero Salaude|Felix Victor André|Carlos de Oliveira|Esposa|Maria Rafaela Hermenegildo|Adozinda Hermenegildo|Isaías Hermenegildo|Esposa|Ana Hermenegildo|Francisco Maria Miguel|Lourenço Novela|Esposa"],
-  ["Mesa 6 - Nangua", "Isaltina Lucas|Marisa Alves|Martinho Djedje|Esposa|Miguel Simbine|Esposa|Roque Sebastião|Esposa|Marcelino Botão|Esposa|Benedito Murambire|Esposa|Arlindo Manjate|Esposa|Alcino Michaque|Esposa"],
-  ["Mesa 7 - Ngiyabonga", "José Djate|Esposa|Simon Como|Esposa|Salustiano José|Esposa|Susana Mapilele|Esposo|Rosário Matavele|Esposa|Anselmo Zimba|Esposa"],
-  ["Mesa 8 - Grazzi", "Eusebio Saide|Esposa|Ema Donça|Esposo|Miguel Coanai|Esposa|Francisco Inaque|Esposa|Celso Filimão|Esposa|Constantino Nhampule|Esposa"],
-  ["Mesa 9 - Shukran", "André Nhabique|Esposa|Pedro Comé|Esposa|Eduardo Chimela|Esposa|Ranito Alexandre|Esposa|Fabião Nhabique|Esposa|Paulo Chimela|Esposa"],
-  ["Mesa 10 - Gràcies", "Fábio Darsan|Esposa|Valter Siba Siba|Esposa|Mauro Manjate|Esposa|Yanick Paulo Jorge da Costa Bagasse|Samuel Júnior|Esposa|Patrick Mogne|Noiva|Rafael Fumane"],
-  ["Mesa 11 - Gracias", "Celso Mutemba|Filiano Mutemba|Esposa|Domingos Diogo|Esposa|Padre Abel Sicanso|Belarmino Chivambo|Esposa|Momade Nemane|Esposa|Armando Inroga|Esposa"],
-  ["Mesa 12 - Enkosi", "Patrocinio Mascarenhas|Stélio Mascarenhas|Esposa|Paulo Jorge da Costa Bagasse|Esposa|Albertina Bambaige Matimbe|Esposo|Zélia Cristina|Nuno Fonseca|Esposa|Jane Goveia|Natalina Calisto"],
-  ["Mesa 13 - Ndzi Nkhensile", "Alfredo Paua|Esposa|Sérgio Paua|Esposa|José Rafael|Esposa|Adelino Cherindza|Esposa|Glória Janeiro|Esposo|Domingos Lambo|Esposa|Egas Simbine|Esposa|Manuel Cabinda|Esposa"],
-  ["Mesa 14 - Hvala", "Paulo Cuinica Jr|Esposa|Ivander Macia|Esposa|Júnior Jay Argh|Esposa|Malik Carilho|Esposa|Larsen Muchanga|Esposa|Lorivaldo Simango|Dayne Michel|Esposa|Rodrigo Ramalho|Esposa|Higino Cuamba"],
-  ["Mesa 15 - Ndzi bonguile", "Joana Oliveira|Helena da Graça|Ana Luísa Cheveia|Bernardo de Carvalho|Esposa|Rogério António Martinho|Zein Oliveira|Halley Ibraimo|Alice Mavale|Glória Tivane|Mendes Salvador|Rosangela Carlos"],
-  ["Mesa 16 - Salamat", "Uli da Silva|Armando Correia|Esposa|Ivaldo Banze|Mimiy Mondlane|Kevin Zualo|Esposa|Chelsea Kapece|Karen Massango|Esposo|Edilson Bachita|Esposa"],
-  ["Mesa 17 - Tashikeni", "Maria Mavale|Renato Timane|Nuno Manjate|Esposa|Ilda Luisa|Esposo|João Dias|Esposa|Sandra Bontana|Luisa Baccarat|Edma dos Santos|Rosária Chambule"]
+["Mesa 1 - Obrigado","Paulo Fumane|Esposa|Hosseia Nhabique|Esposa|Jeremias Mavale|Esposa|Fernando Dias|Esposa|Castro Azarias|Esposa"],
+["Mesa 2 - Ndza Khensa","S.Excia Adriano Maleiane|Esposa|S.Excia Carla Loveira|Esposo|S.Excia Salimo Valá|Esposa|Diogo Nhaquila|Esposa|João Pedro Rodrigues|Filipe Lúcio"],
+["Mesa 3 - Khanimambo","General Basilio Monteiro|Esposa|Dr. Octávio Mutemba|Esposa|Dr. Taibo Mucobora|Esposa|Dr. Aiuba Cuereneia|Esposa|Inocêncio Sotomane|Esposa"],
+["Mesa 4 - Thank You","S.Excia Ernesto Max Tonela|Esposa|Dr. Nelson Muianga|Esposa|Ester Santos|Esposo|Danilo Nalá|Esposa|Dr. Pedro Cossa|Esposa"],
+["Mesa 5 - Grazie","Carlos Fruquia|Clara Mahomed Fruquia|Humberto Fumane|Ana Fumane|Ana Taero Salaude|Felix Victor André|Carlos de Oliveira|Esposa|Maria Rafaela Hermenegildo|Adozinda Hermenegildo|Isaías Hermenegildo|Esposa|Ana Hermenegildo|Francisco Maria Miguel|Lourenço Novela|Esposa"],
+["Mesa 6 - Nangua","Isaltina Lucas|Marisa Alves|Martinho Djedje|Esposa|Miguel Simbine|Esposa|Roque Sebastião|Esposa|Marcelino Botão|Esposa|Benedito Murambire|Esposa|Arlindo Manjate|Esposa|Alcino Michaque|Esposa"],
+["Mesa 7 - Ngiyabonga","José Djate|Esposa|Simon Como|Esposa|Salustiano José|Esposa|Susana Mapilele|Esposo|Rosário Matavele|Esposa|Anselmo Zimba|Esposa"],
+["Mesa 8 - Grazzi","Eusebio Saide|Esposa|Ema Donça|Esposo|Miguel Coanai|Esposa|Francisco Inaque|Esposa|Celso Filimão|Esposa|Constantino Nhampule|Esposa"],
+["Mesa 9 - Shukran","André Nhabique|Esposa|Pedro Comé|Esposa|Eduardo Chimela|Esposa|Ranito Alexandre|Esposa|Fabião Nhabique|Esposa|Paulo Chimela|Esposa"],
+["Mesa 10 - Gràcies","Fábio Darsan|Esposa|Valter Siba Siba|Esposa|Mauro Manjate|Esposa|Yanick Paulo Jorge da Costa Bagasse|Samuel Júnior|Esposa|Patrick Mogne|Noiva|Rafael Fumane"],
+["Mesa 11 - Gracias","Celso Mutemba|Filiano Mutemba|Esposa|Domingos Diogo|Esposa|Padre Abel Sicanso|Belarmino Chivambo|Esposa|Momade Nemane|Esposa|Armando Inroga|Esposa"],
+["Mesa 12 - Enkosi","Patrocinio Mascarenhas|Stélio Mascarenhas|Esposa|Paulo Jorge da Costa Bagasse|Esposa|Albertina Bambaige Matimbe|Esposo|Zélia Cristina|Nuno Fonseca|Esposa|Jane Goveia|Natalina Calisto"],
+["Mesa 13 - ndzi Nkhensile","Alfredo Paua|Esposa|Sérgio Paua|Esposa|José Rafael|Esposa|Adelino Cherindza|Esposa|Glória Janeiro|Esposo|Domingos Lambo|Esposa|Egas Simbine|Esposa|Manuel Cabinda|Esposa"],
+["Mesa 14 - Hvala","Paulo Cuinica Jr|Esposa|Ivander Macia|Esposa|Júnior Jay Argh|Esposa|Malik Carilho|Esposa|Larsen Muchanga|Esposa|Lorivaldo Simango|Dayne Michel|Esposa|Rodrigo Ramalho|Esposa|Higino Cuamba"],
+["Mesa 15 - ndzi bonguile","Joana Oliveira|Helena da Graça|Ana Luísa Cheveia|Bernardo de Carvalho|Esposa|Rogério António Martinho|Zein Oliveira|Halley Ibraimo|Alice Mavale|Glória Tivane|Mendes Salvador|Rosangela Carlos"],
+["Mesa 16 - Salamat","Uli da Silva|Armando Correia|Esposa|Ivaldo Banze|Mimiy Mondlane|Kevin Zualo|Esposa|Chelsea Kapece|Karen Massango|Esposo|Edilson Bachita|Esposa"],
+["Mesa 17 - Tashikeni","Maria Mavale|Renato Timane|Nuno Manjate|Esposa|Ilda Luisa|Esposo|João Dias|Esposa|Sandra Bontana|Luisa Baccarat|Edma dos Santos|Rosária Chambule"],
+["Mesa 18 - Paldies","Natasha Macuacua|Esposo|Vânia de Oliveira|Noivo|Maria Sara Manjate|Cintia David|Jéssica Cuinica|Belnisio Cossa|Esposa|Joaquina Massingarela|Alice Comé|Amelia Meque"],
+["Mesa 19 - Ndatenda","Dino Nhabique|Esposa|Arnaldo Magalhães|Esposa|Armando Nguenha|Esposa|Carlos Cuereneia|Esposa|Timoteo Faizal|Aiuba Cuereneia Junior|Virgílio Maria|Esposa"],
+["Mesa 20 - Rahmat","Paula Bila|Nayara Gulamo|Sheila Nhampossa|Vanessa Neves|Mayett Manganhela|Esposo|Carlos Guambe|Esposa|Edna Bebana|Esposo|Sandra Chauque|Yolanda Muianga"],
+["Mesa 21 - Dankie","Suzete Constaça|Cátia Constança|Paula Rodrigues|Sonia Miranda|Helena Soares Amade|Alice Soares|Savia Ferreira|Fredson Rafael|Esposa|Sonia Manhiça|Esposo|Maria Isabel Omar"],
+["Mesa 22 - Aguyie","Natley Murambire|Namorado|Yannick Botão|Namorada|Yunara Botão|Namorado|Kelly|Hamid Ibraimo|Elvis|Marvin Oliveira|José Chavane|Esposa"],
+["Mesa 23 - Xiéxié","João Tesinde|Esposa|Erasmo Langa|Esposa|Milca Tesinde|Esposo|Ester Tesinde|Esposo|Natalia Zandamela|Sandra Lameira|Esposo|Carlos Zandamela Júnior|Noiva|Carina Zandamela|Alberto Sithole|Esposa"],
+["Mesa 24 - Barka","Cesaria Hou|Noivo|Victória Hou|Danilo Manjate|Esposa|José Macave|Lúcia Manhique|Alfredo Manhique|Elsa Sitoe|Caldina Pacule|Florentina Venguele|Josina Bonzo|Helena Bonzo|Violeta Tembe|Vitor Maluleque|Marina Manhique"],
+["Mesa 25 - Merci","Nixon Nhabique|Azarias Inguane|Lola Inguane|Lomeu Guilhiche|Filipe Sousa|Ian Blanco|Esposa|Elfrasio Mugabe|Esposa|Marlon Cumbi|Cláudio Munjovo|Esposa|Lester Gonçalves|Elton James|Esposa|Barnabé Zandamela"],
+["Mesa 26 - Medasse","Iuri Fumane|Igor Neves|Pedro Palate|Esposa|Hugo Ferreira|Aecio Mavale|Rui Simango|Kemylain Fumane|Ellaine Fumane|Ivan Nhabique|Leo Zitha|Esposa|Joaquim Macumbi|Esposa|Wimy Huo|Kelvin Fumane"],
+["Mesa 27 - Danke","Leonilde Fruquia|Edwin Fruquia|Júlia Amélia|Clara Muchanga|Ernesto Nhambe|Esposa|Rui Simango|Esposa|Ercilio Fulane|Esposa|Zeca Tesinde|Esposa|Ilidio Xerinda|Esposa|Rassina Castro Salaude|Berta Castro Salaude"],
+["Mesa 28 - Tack","Edvan Murambire|Esposa|Domingos João Júnior|Esposa|Elton Nobre|Esposa|Gibel Cassiano|Namorada|Erico Veríssimo|Idelson Revo Revo|Victório Huo|Esposa"],
+["Mesa 29 - Arigato","Carlos Fruquia Jr.|Carlos Muchanga|Cesar dos Santos|Esposa|Enidy Felix|Stélio Félix|Esposa|Marcelino Djedje|Esposa|Vicente Amone|Pinho Prometido|Esposa"],
+["Mesa 30 - Mahalo","Márcio Pereira|Esposa|Adilson Sumburane|Labvu Rego|Noiva|Deucio Sitoe|Esposa|Edson Cardoso|Esposa|Neidy Langa|Esposo|Diamantino Langa"],
+["Mesa 31 - Takhuta","Padre Bernardino Matavele|Padre Rodrigues Chizenga|Padre Dionísio Machel|Padre Eugénio Sigauque|Padre Teodoro Adriano|Padre Horácio Simbine|Padre Carlos da Cunha|Isabel Mulhuiu|Maria Namo|Maria Conceição Monteiro|Jorge Massinga|Esposa"],
+["Mesa 32 - Takk","Shakila de Oliveira|Noivo|Kevin Alex Nhampule|Esposa|Nelly Psico|Luana Maria|Samson Nkomo|Bruno Dava|Namorada|Gabriela Dava|Esposo|Delphi Cuambe|Daren Laice|Esposa|Lilian Guibalo|Melissa Guibalo"],
+["Mesa 33 - Zikomo","Raimundo Tamele Jr.|Esposa|Helton Tamele|Esposa|Benigno Papelo|Esposa|Beato Realdo Dias|Esposa|Danny Candua|Bonifacio Lazaro Massamba|Esposa|Gamaliel Massinga|Esposa|Sérgio Mauai|Esposa|Jeremias Mondlane"],
+["Mesa 34 - Diolch","Maria Teresa Gandar|Esposo|Costa Ferreira|Esposa|Sérgio Magumo|Teresa Salda|Hermenegildo Lucas|Esposa|Ana Nhabique|Anagica Viola|Odete Hamela|Esposo"],
+["Mesa 35 - Maita","Teofilo Lacuna|Esposa|Tilde Tembe|Esposa|Hilidio Mundomba|Esposa|Gualter Gonçalves|Esposa|Lívio Mahanhe|Esposa|Jorge da Silva|Esposa"],
+["Mesa 36 - Daalu","Dinoky Maringue|Esposa|Charmilia Machibene|Esposo|Edy Mahumane|Érica Chaisse|Esposo|Luna Sérgio|Luana Sérgio|Rossana Isaias|Rady Gramane|Castro Inguane Jr"],
+["Mesa 37 - Nashukuru","Amilcar Mavale|Esposa|Ismael Sulemane|Esposa|Paulo Mata|Esposa|Zefanias Emerico|Esposa|Jo Capece|Esposa|Xu George 1|Xu George 2|Carol Hamela|Esposo|Alice Hamela|Esposa"],
+["Mesa 38 - Ndapandula","Joaquim Langa|Esposa|Julião Langa|Esposa|Celina Ubisse|Teodomiro Pedro|Esposa|Ercilia Ubisse|Domingos Buque|Esposa|Virgilio Sithole|Esposa|Yuran Mendes|Michelle Ana|Ronaldo Miambo|Hosseia Hermenegildo"]
 ];
+
 const KEY = "sonare-convidados-v3";
 const VER_KEY = "sonare-raw-ver";
 const pax = n => /Família/.test(n) ? 4 : / (e|&) /.test(n) ? 2 : 1;
