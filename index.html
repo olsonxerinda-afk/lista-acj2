@@ -6,13 +6,14 @@
 <title>SONARE – Controlo de Convidados</title>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;700&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#f2f5f4;--card:#fff;--ink:#12292b;--mute:#5d7274;--line:#d9e2e1;--acc:#1f5d5a;--accbg:#e1efed;--gold:#b8923f;--goldbg:#f6edd8;--ok:#1f7a4d;
+:root{--bg:#f2f5f4;--card:#fff;--ink:#12292b;--mute:#5d7274;--line:#d9e2e1;--acc:#1f5d5a;--accbg:#e1efed;--gold:#b8923f;--goldbg:#f6edd8;--ok:#1f7a4d;--err:#b83b3b;
 box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1819;--card:#16262a;--ink:#e8f0ef;--mute:#8da5a7;--line:#27393d;--acc:#6cc1bb;--accbg:#1b3a3b;--gold:#d8b565;--goldbg:#33301f;--ok:#5fcf97}}
-:root[data-theme="dark"]{--bg:#0e1819;--card:#16262a;--ink:#e8f0ef;--mute:#8da5a7;--line:#27393d;--acc:#6cc1bb;--accbg:#1b3a3b;--gold:#d8b565;--goldbg:#33301f;--ok:#5fcf97}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1819;--card:#16262a;--ink:#e8f0ef;--mute:#8da5a7;--line:#27393d;--acc:#6cc1bb;--accbg:#1b3a3b;--gold:#d8b565;--goldbg:#33301f;--ok:#5fcf97;--err:#f07171}}
+:root[data-theme="dark"]{--bg:#0e1819;--card:#16262a;--ink:#e8f0ef;--mute:#8da5a7;--line:#27393d;--acc:#6cc1bb;--accbg:#1b3a3b;--gold:#d8b565;--goldbg:#33301f;--ok:#5fcf97;--err:#f07171}
 html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 "Instrument Sans",system-ui,sans-serif;min-height:100%}
+body.locked{overflow:hidden}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--card);z-index:10}
 header{background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:env(safe-area-inset-top,0px);z-index:9;padding:14px 16px 12px}
 .wrap{max-width:1100px;margin:0 auto}
@@ -25,7 +26,7 @@ h1{font:700 26px/1 Fraunces,Georgia,serif;margin:0;letter-spacing:.04em}
 .bar{height:6px;background:var(--line);border-radius:3px;margin-top:12px;overflow:hidden}
 .bar i{display:block;height:100%;background:var(--gold);width:0;transition:width .3s}
 .tools{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
-input[type=search],.edit,.add input{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 12px;min-width:0}
+input[type=search],input[type=password],.edit,.add input{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 12px;min-width:0}
 input[type=search]{flex:1 1 180px}
 button{font:inherit;color:var(--ink);background:none;border:1px solid var(--line);border-radius:8px;padding:8px 12px;cursor:pointer}
 button:focus-visible,input:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
@@ -53,10 +54,39 @@ li.done .ck{background:var(--ok);border-color:var(--ok);color:#fff}
 .add input{flex:1}
 .empty{padding:40px;text-align:center;color:var(--mute);grid-column:1/-1}
 .foot{max-width:1100px;margin:0 auto;padding:4px 16px 40px;display:flex;gap:8px;flex-wrap:wrap;color:var(--mute);font-size:13px;align-items:center}
-@media print{header .tools,.add,.ck,.foot button{display:none}header{position:static}.t.shut ul{display:block}}
+
+/* Tela de bloqueio */
+.lock-screen{position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px}
+.lock-screen.hidden{display:none}
+.lock-card{width:100%;max-width:360px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:24px;box-shadow:0 12px 32px rgba(0,0,0,.08)}
+.lock-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.lock-badge{display:inline-block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--acc);background:var(--accbg);padding:4px 8px;border-radius:6px;margin-bottom:10px}
+.lock-form{display:flex;flex-direction:column;gap:10px;margin-top:18px}
+.lock-btn{background:var(--acc);color:var(--card);border-color:var(--acc);font-weight:600;padding:10px 14px}
+.lock-err{color:var(--err);font-size:13px;min-height:18px;margin:0}
+
+@media print{header .tools,.add,.ck,.foot button,.lock-screen{display:none}header{position:static}.t.shut ul{display:block}}
 </style>
 </head>
-<body>
+<body class="locked">
+<div class="lock-screen" id="lockScreen" role="dialog" aria-modal="true" aria-labelledby="lockTitle">
+  <div class="lock-card">
+    <div class="lock-head">
+      <div>
+        <span class="lock-badge">Acesso restrito</span>
+        <h1 id="lockTitle">SONARE</h1>
+        <div class="sub">Introduza a senha para abrir o controlo de convidados</div>
+      </div>
+      <button type="button" id="lockTheme" aria-label="Alternar tema">◐</button>
+    </div>
+    <form class="lock-form" id="lockForm">
+      <input type="password" id="lockPass" placeholder="Senha de acesso" autocomplete="current-password" required autofocus>
+      <p class="lock-err" id="lockErr" role="alert"></p>
+      <button type="submit" class="lock-btn">Entrar</button>
+    </form>
+  </div>
+</div>
+
 <header><div class="wrap">
 <div class="top"><div><h1>SONARE</h1><div class="sub">Controlo de convidados</div><div id="st" class="sub"></div></div>
 <button id="theme" aria-label="Alternar tema">◐</button></div>
@@ -75,10 +105,58 @@ li.done .ck{background:var(--ok);border-color:var(--ok);color:#fff}
 <main id="app"></main>
 <div class="foot">
 <button id="exp">Expandir tudo</button><button id="col">Recolher tudo</button><button id="prt">Imprimir</button>
-<button id="rst">Limpar presenças</button>
+<button id="rst">Limpar presenças</button><button id="lck">Bloquear ecrã</button>
 <span>Toque no nome para editar · toque em “2 pess.” para alterar o número de pessoas.</span>
 </div>
 <script>
+const PASS = "ACJ2026";
+const AUTH_KEY = "sonare-unlocked-v1";
+
+function toggleTheme() {
+  const r = document.documentElement, d = matchMedia("(prefers-color-scheme:dark)").matches;
+  const cur = r.dataset.theme || (d ? "dark" : "light");
+  r.dataset.theme = cur === "dark" ? "light" : "dark";
+}
+document.getElementById("theme").onclick = toggleTheme;
+document.getElementById("lockTheme").onclick = toggleTheme;
+
+function setLocked(locked) {
+  const screen = document.getElementById("lockScreen");
+  const input = document.getElementById("lockPass");
+  const err = document.getElementById("lockErr");
+  if (locked) {
+    try { sessionStorage.removeItem(AUTH_KEY); } catch (e) {}
+    document.body.classList.add("locked");
+    screen.classList.remove("hidden");
+    input.value = "";
+    err.textContent = "";
+    setTimeout(() => input.focus(), 50);
+  } else {
+    try { sessionStorage.setItem(AUTH_KEY, "1"); } catch (e) {}
+    document.body.classList.remove("locked");
+    screen.classList.add("hidden");
+    err.textContent = "";
+  }
+}
+
+document.getElementById("lockForm").addEventListener("submit", e => {
+  e.preventDefault();
+  const val = document.getElementById("lockPass").value;
+  if (val === PASS) {
+    setLocked(false);
+  } else {
+    document.getElementById("lockErr").textContent = "Senha incorreta. Tente novamente.";
+    const inp = document.getElementById("lockPass");
+    inp.select();
+    inp.focus();
+  }
+});
+
+document.getElementById("lck").onclick = () => setLocked(true);
+
+let alreadyUnlocked = false;
+try { alreadyUnlocked = sessionStorage.getItem(AUTH_KEY) === "1"; } catch (e) {}
+setLocked(!alreadyUnlocked);
 
 // Incremente RAW_VER sempre que alterar nomes ou mesas no RAW para forçar a atualização
 const RAW_VER = 2;
@@ -99,28 +177,7 @@ const RAW = [
   ["Mesa 14 - Hvala", "Paulo Cuinica Jr|Esposa|Ivander Macia|Esposa|Júnior Jay Argh|Esposa|Malik Carilho|Esposa|Larsen Muchanga|Esposa|Lorivaldo Simango|Dayne Michel|Esposa|Rodrigo Ramalho|Esposa|Higino Cuamba"],
   ["Mesa 15 - Ndzi bonguile", "Joana Oliveira|Helena da Graça|Ana Luísa Cheveia|Bernardo de Carvalho|Esposa|Rogério António Martinho|Zein Oliveira|Halley Ibraimo|Alice Mavale|Glória Tivane|Mendes Salvador|Rosangela Carlos"],
   ["Mesa 16 - Salamat", "Uli da Silva|Armando Correia|Esposa|Ivaldo Banze|Mimiy Mondlane|Kevin Zualo|Esposa|Chelsea Kapece|Karen Massango|Esposo|Edilson Bachita|Esposa"],
-  ["Mesa 17 - Tashikeni", "Maria Mavale|Renato Timane|Nuno Manjate|Esposa|Ilda Luisa|Esposo|João Dias|Esposa|Sandra Bontana|Luisa Baccarat|Edma dos Santos|Rosária Chambule"],
-  ["Mesa 18 - Paldies", "Natasha Macuacua|Esposo|Vânia de Oliveira|Noivo|Maria Sara Manjate|Cintia David|Jéssica Cuinica|Belnisio Cossa|Esposa|Joaquina Massingarela|Alice Comé|Amelia Meque"],
-  ["Mesa 19 - Ndatenda", "Dino Nhabique|Esposa|Arnaldo Magalhães|Esposa|Armando Nguenha|Esposa|Carlos Cuereneia|Esposa|Timoteo Faizal|Aiuba Cuereneia Junior|Virgílio Maria|Esposa"],
-  ["Mesa 20 - Rahmat", "Paula Bila|Nayara Gulamo|Sheila Nhampossa|Vanessa Neves|Mayett Manganhela|Esposo|Carlos Guambe|Esposa|Edna Bebana|Esposo|Sandra Chauque|Yolanda Muianga"],
-  ["Mesa 21 - Dankie", "Suzete Constaça|Cátia Constança|Paula Rodrigues|Sonia Miranda|Helena Soares Amade|Alice Soares|Savia Ferreira|Fredson Rafael|Esposa|Sonia Manhiça|Esposo|Maria Isabel Omar"],
-  ["Mesa 22 - Aguyie", "Natley Murambire|Namorado|Yannick Botão|Namorada|Yunara Botão|Namorado|Kelly|Hamid Ibraimo|Elvis|Marvin Oliveira|José Chavane|Esposa"],
-  ["Mesa 23 - Xiéxié", "João Tesinde|Esposa|Erasmo Langa|Esposa|Milca Tesinde|Esposo|Ester Tesinde|Esposo|Natalia Zandamela|Sandra Lameira|Esposo|Carlos Zandamela Júnior|Noiva|Carina Zandamela|Alberto Sithole|Esposa"],
-  ["Mesa 24 - Barka", "Cesaria Hou|Noivo|Victória Hou|Danilo Manjate|Esposa|José Macave|Lúcia Manhique|Alfredo Manhique|Elsa Sitoe|Caldina Pacule|Florentina Venguele|Josina Bonzo|Helena Bonzo|Violeta Tembe|Vitor Maluleque|Marina Manhique"],
-  ["Mesa 25 - Merci", "Nixon Nhabique|Azarias Inguane|Lola Inguane|Lomeu Guilhiche|Filipe Sousa|Ian Blanco|Esposa|Elfrasio Mugabe|Esposa|Marlon Cumbi|Cláudio Munjovo|Esposa|Lester Gonçalves|Elton James|Esposa|Barnabé Zandamela"],
-  ["Mesa 26 - Medasse", "Iuri Fumane|Igor Neves|Pedro Palate|Esposa|Hugo Ferreira|Aecio Mavale|Rui Simango|Kemylain Fumane|Ellaine Fumane|Ivan Nhabique|Leo Zitha|Esposa|Joaquim Macumbi|Esposa|Wimy Huo|Kelvin Fumane"],
-  ["Mesa 27 - Danke", "Leonilde Fruquia|Edwin Fruquia|Júlia Amélia|Clara Muchanga|Ernesto Nhambe|Esposa|Rui Simango|Esposa|Ercilio Fulane|Esposa|Zeca Tesinde|Esposa|Ilidio Xerinda|Esposa|Rassina Castro Salaude|Berta Castro Salaude"],
-  ["Mesa 28 - Tack", "Edvan Murambire|Esposa|Domingos João Júnior|Esposa|Elton Nobre|Esposa|Gibel Cassiano|Namorada|Erico Veríssimo|Idelson Revo Revo|Victório Huo|Esposa"],
-  ["Mesa 29 - Arigato", "Carlos Fruquia Jr.|Carlos Muchanga|Cesar dos Santos|Esposa|Enidy Felix|Stélio Félix|Esposa|Marcelino Djedje|Esposa|Vicente Amone|Pinho Prometido|Esposa"],
-  ["Mesa 30 - Mahalo", "Maria Teresa Gandar|Esposo|Costa Ferreira|Esposa|Sérgio Magumo|Teresa Salda|Hermenegildo Lucas|Esposa|Ana Nhabique|Anagica Viola|Odete Hamela|Esposo"],
-  ["Mesa 31 - Takhuta", "Padre Bernardino Matavele|Padre Rodrigues Chizenga|Padre Dionísio Machel|Padre Eugénio Sigauque|Padre Teodoro Adriano|Padre Horácio Simbine|Padre Carlos da Cunha|Isabel Mulhuiu|Maria Namo|Maria Conceição Monteiro|Jorge Massinga|Esposa"],
-  ["Mesa 32 - Takk", "Shakila de Oliveira|Noivo|Kevin Alex Nhampule|Esposa|Nelly Psico|Luana Maria|Samson Nkomo|Bruno Dava|Namorada|Gabriela Dava|Esposo|Delphi Cuambe|Daren Laice|Esposa|Lilian Guibalo|Melissa Guibalo"],
-  ["Mesa 33 - Zikomo", "Raimundo Tamele Jr.|Esposa|Helton Tamele|Esposa|Benigno Papelo|Esposa|Beato Realdo Dias|Esposa|Danny Candua|Bonifacio Lazaro Massamba|Esposa|Gamaliel Massinga|Esposa|Sérgio Mauai|Esposa|Jeremias Mondlane"],
-  ["Mesa 34 - Diolch", "Márcio Pereira|Esposa|Adilson Sumburane|Labvu Rego|Noiva|Deucio Sitoe|Esposa|Edson Cardoso|Esposa|Neidy Langa|Esposo|Diamantino Langa"],
-  ["Mesa 35 - Maita", "Teofilo Lacuna|Esposa|Tilde Tembe|Esposa|Hilidio Mundomba|Esposa|Gualter Gonçalves|Esposa|Lívio Mahanhe|Esposa|Jorge da Silva|Esposa"],
-  ["Mesa 36 - Daalu", "Dinoky Maringue|Esposa|Charmilia Machibene|Esposo|Edy Mahumane|Érica Chaisse|Esposo|Luna Sérgio|Luana Sérgio|Rossana Isaias|Rady Gramane|Castro Inguane Jr"],
-  ["Mesa 37 - Nashukuru", "Amilcar Mavale|Esposa|Ismael Sulemane|Esposa|Paulo Mata|Esposa|Zefanias Emerico|Esposa|Jo Capece|Esposa|Xu George 1|Xu George 2|Carol Hamela|Esposo|Alice Hamela|Esposa"],
-  ["Mesa 38 - Ndapandula", "Joaquim Langa|Esposa|Julião Langa|Esposa|Celina Ubisse|Teodomiro Pedro|Esposa|Ercilia Ubisse|Domingos Buque|Esposa|Virgilio Sithole|Esposa|Yuran Mendes|Michelle Ana|Ronaldo Miambo|Hosseia Hermenegildo"]
+  ["Mesa 17 - Tashikeni", "Maria Mavale|Renato Timane|Nuno Manjate|Esposa|Ilda Luisa|Esposo|João Dias|Esposa|Sandra Bontana|Luisa Baccarat|Edma dos Santos|Rosária Chambule"]
 ];
 const KEY = "sonare-convidados-v3";
 const VER_KEY = "sonare-raw-ver";
@@ -431,12 +488,6 @@ $("rst").onclick = function () {
   this.textContent = "Limpar presenças";
   saveLocal();
   render();
-};
-
-$("theme").onclick = () => {
-  const r = document.documentElement, d = matchMedia("(prefers-color-scheme:dark)").matches;
-  const cur = r.dataset.theme || (d ? "dark" : "light");
-  r.dataset.theme = cur === "dark" ? "light" : "dark";
 };
 
 render();
